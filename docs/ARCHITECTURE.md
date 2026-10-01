@@ -12,7 +12,8 @@ truss-quote-production/
 ├── costing/                    # ОСНОВНОЙ ПАКЕТ / МОНОРЕПОЗИТОРИЙ
 │   ├── core/                   # Базовые сущности, модели данных и справочники ценовых политик
 │   │   ├── models.py           # Доменные структуры (TrussFrame, TimberItem, PlateItem, etc.)
-│   │   └── pricing_catalog.py  # Справочники ДК, клиентские профили, агентские ставки
+│   │   ├── pricing_catalog.py  # Справочники ДК, клиентские профили, агентские ставки
+│   │   └── settings.py         # Пользовательские настройки и алиасы (settings.json)
 │   │
 │   ├── data_import/ (importers)# СЛОЙ ИМПОРТА ДАННЫХ
 │   │   ├── base.py             # Базовый абстрактный интерфейс импортеров
@@ -35,17 +36,19 @@ truss-quote-production/
 │   │   └── models.py           # Модели производственных заданий и раскладок
 │   │
 │   └── api/                    # BACKEND API (FASTAPI)
-│       ├── app.py              # Инициализация приложения, middleware, раздача статики
+│       ├── app.py              # Инициализация приложения, маршруты / и /admin, раздача статики
 │       ├── routes.py           # REST маршруты:
-│       │                       #  - /api/sample, /api/upload
+│       │                       #  - /api/info, /api/sample, /api/upload
 │       │                       #  - /api/costing/calculate, /api/positions/calculate
 │       │                       #  - /api/cutting/optimize, /api/financials/calculate
 │       │                       #  - /api/calculate, /api/quote, /api/workorders
+│       │                       #  - /api/admin/type-aliases (GET/PUT)
 │       └── schemas.py          # Pydantic схемы валидации
 │
 ├── web/                        # WEB-ИНТЕРФЕЙС (NO-BUILD SPA FRONTEND)
 │   ├── templates/              # HTML-шаблоны страниц
-│   │   └── index.html          # Главная интерактивная страница (<script type="module">)
+│   │   ├── index.html          # Главная интерактивная страница (<script type="module">)
+│   │   └── admin.html          # Панель администрирования настроек и алиасов
 │   └── static/                 # Статические ресурсы
 │       ├── css/styles.css      # Стили TailwindCSS и правила печати
 │       └── js/                 # Модульная клиентская архитектура (ES6)
@@ -56,7 +59,7 @@ truss-quote-production/
 │               ├── helpers.js  # Вспомогательные UI функции (форматирование, лоадер)
 │               ├── controllers.js # Диспетчеры событий и контроллеры вкладок
 │               └── renderers/  # Доменные рендереры интерфейса
-│                   ├── summary.js    # Сводка и геометрия
+│                   ├── summary.js    # Сводка и геометрия (с поддержкой алиасов)
 │                   ├── positions.js  # Позиции и сложность
 │                   ├── costing.js    # Себестоимость и материалы
 │                   ├── cutting.js    # Карты раскроя хлыстов
@@ -74,6 +77,7 @@ truss-quote-production/
 │
 ├── tests/                      # АВТОМАТИЗИРОВАННЫЕ ТЕСТЫ
 ├── app.py                      # Единая точка запуска приложения
+├── settings.json               # Пользовательские настройки (алиасы типов конструкций)
 ├── start_server.bat            # Скрипт быстрого запуска в 1 клик на Windows
 └── pyproject.toml              # Конфигурация проекта и зависимостей
 ```

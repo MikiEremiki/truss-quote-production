@@ -180,3 +180,74 @@
   "kerf_mm": 4.0
 }
 ```
+
+---
+
+### 10. `GET /api/info`
+Возвращает системную информацию о версии программного комплекса.
+
+**Ответ (200 OK):**
+```json
+{
+  "status": "success",
+  "app_name": "MiTek Costing & Production Pro",
+  "version": "2.0.0",
+  "version_suffix": "PRO",
+  "version_full": "2.0.0-PRO"
+}
+```
+
+---
+
+### 11. `GET /api/admin/type-aliases`
+Возвращает типы конструкций, присутствующие в текущем проекте MiTek, полный каталог доступных подтипов (`all_options`) и сохраненные пользовательские алиасы (`aliases`).
+
+**Ответ (200 OK):**
+```json
+{
+  "status": "success",
+  "types": {
+    "duopitch": "Двускатная ферма",
+    "cut_timber": "Доска с прирезкой / Стропила"
+  },
+  "all_options": {
+    "duopitch": "Двускатная ферма",
+    "monopitch": "Односкатная ферма",
+    "scissor": "Ножничная ферма",
+    "girder": "Балка на МЗП",
+    "gable_ladder": "Фронтонная лестница",
+    "hip": "Вальма",
+    "cut_timber": "Доска с прирезкой / Стропила",
+    "raw_timber": "Просто доска (без распила)",
+    "custom": "Другое / Индивидуальная"
+  },
+  "aliases": {
+    "duopitch": "scissor"
+  }
+}
+```
+
+---
+
+### 12. `PUT /api/admin/type-aliases`
+Сохраняет сопоставление алиасов типов конструкций в `settings.json`. Пустая строка сбрасывает алиас на значение по умолчанию.
+
+**Тело запроса (JSON):**
+```json
+{
+  "aliases": {
+    "duopitch": "scissor",
+    "cut_timber": ""
+  }
+}
+```
+
+**Ответ (200 OK):**
+```json
+{
+  "status": "success",
+  "aliases": {
+    "duopitch": "scissor"
+  }
+}
+```
