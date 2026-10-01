@@ -17,6 +17,7 @@
   - **`costing.api`** — REST API бэкенд на базе FastAPI (включая эндпоинты администрирования `/api/admin/*`);
 - **`web`** — Single Page Application (SPA) веб-интерфейс с боковой навигацией по функциональным блокам (`web/templates/index.html`, `web/templates/admin.html`, `web/static/js/app.js`, `web/static/js/modules/ifc-viewer.js`, `web/static/css/styles.css`);
 - **`docs`** — документация, архитектурные решения и регламенты:
+  - [`docs/DOMAIN.md`](docs/DOMAIN.md) — предметная область, терминология и классификация конструкций;
   - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — архитектурная схема и потоки данных;
   - [`docs/ADR.md`](docs/ADR.md) — реестр принятых архитектурных решений (ADR);
   - [`docs/PRICING_POLICY.md`](docs/PRICING_POLICY.md) — регламент ценообразования и формулы P&L;
