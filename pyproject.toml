@@ -1,0 +1,21 @@
+[project]
+name = "truss-quote-production"
+version = "0.1.0"
+description = "Инженерно-экономический комплекс калькуляции ферм MiTek на МЗП и подготовки производственных заданий"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi>=0.142.2",
+    "uvicorn>=0.54.0",
+    "openpyxl>=3.1.5",
+    "pydantic>=2.13.5",
+    "python-multipart>=0.0.32"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["costing*", "web*"]
