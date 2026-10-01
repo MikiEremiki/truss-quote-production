@@ -42,9 +42,19 @@ export function renderSummary() {
   // Frames Table
   const fTbody = document.getElementById('frames-table-body');
   if (fTbody) {
-    fTbody.innerHTML = (d.frames || []).map(f => `
+    const frames = d.frames || [];
+    const posByName = {};
+    ((appState.cost && appState.cost.positions) || []).forEach(p => { posByName[p.name] = p; });
+    const typeLabel = f => {
+      const p = posByName[f.name];
+      if (p && (p.subtype_label || p.item_type_label)) return p.subtype_label || p.item_type_label;
+      return f.item_type === 'truss' ? 'Ферма' : 'Пиломатериал';
+    };
+    const cleanName = n => String(n).replace(/^\s*\d+\s*[xXхХ×]\s*/, '');
+    const rows = frames.map(f => `
       <tr class="hover:bg-slate-50 transition">
-        <td class="py-3 px-4 font-bold text-slate-800">${f.name}</td>
+        <td class="py-3 px-4 font-bold text-slate-800">${cleanName(f.name)}</td>
+        <td class="py-3 px-4 text-slate-600">${typeLabel(f)}</td>
         <td class="py-3 px-4 font-semibold text-blue-600">${f.qty}</td>
         <td class="py-3 px-4 text-slate-500">${f.plies}</td>
         <td class="py-3 px-4 font-bold text-emerald-700 bg-emerald-50/50">${f.total_layers} шт</td>
@@ -55,15 +65,39 @@ export function renderSummary() {
         <td class="py-3 px-4 font-semibold text-slate-900 font-mono">${f.total_vol_m3.toFixed(4)}</td>
       </tr>
     `).join('');
+    const sumBy = fn => frames.reduce((s, f) => s + (Number(fn(f)) || 0), 0);
+    const totalRow = `
+      <tr class="bg-slate-100 font-bold text-slate-900 border-t-2 border-slate-300">
+        <td class="py-3 px-4">ИТОГО</td>
+        <td class="py-3 px-4"></td>
+        <td class="py-3 px-4 text-blue-700">${sumBy(f => f.qty)}</td>
+        <td class="py-3 px-4"></td>
+        <td class="py-3 px-4 text-emerald-700">${sumBy(f => f.total_layers)} шт</td>
+        <td class="py-3 px-4"></td>
+        <td class="py-3 px-4"></td>
+        <td class="py-3 px-4"></td>
+        <td class="py-3 px-4 font-mono">${sumBy(f => f.plates_m2_ply * f.total_layers).toFixed(2)}</td>
+        <td class="py-3 px-4 font-mono">${sumBy(f => f.total_vol_m3).toFixed(4)}</td>
+      </tr>`;
+    fTbody.innerHTML = rows + (frames.length ? totalRow : '');
   }
+
+  const aggregate = (items, keyFn, valFn) => {
+    const m = new Map();
+    items.forEach(i => {
+      const k = String(keyFn(i)).trim();
+      m.set(k, (m.get(k) || 0) + (Number(valFn(i)) || 0));
+    });
+    return [...m.entries()];
+  };
 
   // Roofing List
   const rList = document.getElementById('roofing-metrics-list');
   if (rList) {
-    rList.innerHTML = (d.roofing || []).map(r => `
+    rList.innerHTML = aggregate(d.roofing || [], r => String(r.name).replace(/[\s:]*\d+\s*$/, ''), r => r.length_m).map(([name, len]) => `
       <div class="flex justify-between items-center text-sm py-1.5 border-b border-slate-100">
-        <span class="text-slate-600">${r.name}:</span>
-        <span class="font-bold text-slate-800">${r.length_m.toFixed(2)} м</span>
+        <span class="text-slate-600">${name}:</span>
+        <span class="font-bold text-slate-800">${len.toFixed(2)} м</span>
       </div>
     `).join('');
   }
@@ -71,10 +105,10 @@ export function renderSummary() {
   // Fasteners List
   const fastList = document.getElementById('fasteners-list');
   if (fastList) {
-    fastList.innerHTML = (d.fasteners || []).map(f => `
+    fastList.innerHTML = aggregate(d.fasteners || [], f => f.desc, f => f.qty).map(([desc, qty]) => `
       <div class="flex justify-between items-center text-sm py-1.5 border-b border-slate-100">
-        <span class="text-slate-600">${f.desc}:</span>
-        <span class="font-bold text-blue-600">${f.qty} шт</span>
+        <span class="text-slate-600">${desc}:</span>
+        <span class="font-bold text-blue-600">${qty} шт</span>
       </div>
     `).join('');
   }

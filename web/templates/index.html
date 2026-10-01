@@ -137,6 +137,25 @@
         </div>
       </div>
 
+      <!-- Roofing & Fasteners Row (collapsed by default) -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <details class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <summary class="font-bold text-slate-800 cursor-pointer flex items-center gap-2">
+            <i class="fa-solid fa-house text-emerald-600"></i> Геометрия кровли и погонаж узлов
+          </summary>
+          <div id="roofing-metrics-list" class="space-y-2 mt-3">
+            <!-- Rendered via JS -->
+          </div>
+        </details>
+        <details class="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+          <summary class="font-bold text-slate-800 cursor-pointer flex items-center gap-2">
+            <i class="fa-solid fa-screwdriver-wrench text-amber-600"></i> Метизы и комплектующие (Fasteners)
+          </summary>
+          <div id="fasteners-list" class="space-y-2 mt-3">
+            <!-- Rendered via JS -->
+          </div>
+        </details>
+      </div>
       <!-- Frames Table -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
@@ -150,6 +169,7 @@
             <thead class="bg-slate-100 text-slate-600 font-semibold text-xs uppercase border-b">
               <tr>
                 <th class="py-3 px-4">Марка</th>
+                <th class="py-3 px-4">Тип конструкции</th>
                 <th class="py-3 px-4">Кол-во</th>
                 <th class="py-3 px-4">Слоев (Plies)</th>
                 <th class="py-3 px-4">Всего слоев</th>
@@ -167,25 +187,6 @@
         </div>
       </div>
 
-      <!-- Roofing & Fasteners Row -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-3">
-          <h3 class="font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
-            <i class="fa-solid fa-house text-emerald-600"></i> Геометрия кровли и погонаж узлов
-          </h3>
-          <div id="roofing-metrics-list" class="space-y-2">
-            <!-- Rendered via JS -->
-          </div>
-        </div>
-        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-3">
-          <h3 class="font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
-            <i class="fa-solid fa-screwdriver-wrench text-amber-600"></i> Метизы и комплектующие (Fasteners)
-          </h3>
-          <div id="fasteners-list" class="space-y-2">
-            <!-- Rendered via JS -->
-          </div>
-        </div>
-      </div>
 
     </div>
 
