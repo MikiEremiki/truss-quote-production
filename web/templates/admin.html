@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Админка — MiTek WoodWorks</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen font-sans">
+  <header class="bg-slate-900 text-white shadow-lg">
+    <div class="max-w-4xl mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-lg font-bold">Админка настроек</h1>
+      <a href="/" class="text-sm text-slate-300 hover:text-white">&larr; К приложению</a>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto px-4 py-6">
+    <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+      <h2 class="text-base font-bold mb-1">Сопоставление типов конструкций</h2>
+      <p class="text-sm text-slate-500 mb-4">
+        Выберите тип конструкции из справочника («Позиции и сложность работ»), который будет отображаться в столбце «Тип конструкции» на вкладке «Обзор» для каждого типа из файла.
+      </p>
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-slate-500 border-b border-slate-200">
+            <th class="py-2 pr-3">Исходный тип из файла</th>
+            <th class="py-2">Отображать во вкладке «Обзор» как</th>
+          </tr>
+        </thead>
+        <tbody id="alias-body"></tbody>
+      </table>
+      <div class="mt-4 flex items-center gap-3">
+        <button id="save-btn" class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition">Сохранить</button>
+        <span id="status" class="text-sm"></span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const body = document.getElementById('alias-body');
+    const status = document.getElementById('status');
+    const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+    async function load() {
+      const res = await fetch('/api/admin/type-aliases');
+      const { types, all_options, aliases } = await res.json();
+      const optionsHtml = (selectedVal, defaultLabel) => {
+        let out = `<option value="">По умолчанию (${esc(defaultLabel)})</option>`;
+        for (const [optKey, optLabel] of Object.entries(all_options || {})) {
+          const isSel = selectedVal === optKey || selectedVal === optLabel;
+          out += `<option value="${esc(optKey)}" ${isSel ? 'selected' : ''}>${esc(optLabel)}</option>`;
+        }
+        return out;
+      };
+
+      body.innerHTML = Object.entries(types).map(([key, label]) => `
+        <tr class="border-b border-slate-100">
+          <td class="py-3 pr-3 font-medium text-slate-800">${esc(label)} <span class="font-mono text-xs text-slate-400">(${esc(key)})</span></td>
+          <td class="py-3">
+            <select data-key="${esc(key)}" class="w-full max-w-md border border-slate-300 rounded-lg px-3 py-1.5 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
+              ${optionsHtml(aliases[key] || '', label)}
+            </select>
+          </td>
+        </tr>`).join('');
+    }
+
+    document.getElementById('save-btn').addEventListener('click', async () => {
+      const aliases = {};
+      body.querySelectorAll('select[data-key]').forEach(s => {
+        if (s.value) {
+          aliases[s.dataset.key] = s.value;
+        } else {
+          aliases[s.dataset.key] = '';
+        }
+      });
+      status.textContent = '';
+      try {
+        const res = await fetch('/api/admin/type-aliases', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ aliases })
+        });
+        if (!res.ok) throw new Error(res.status);
+        status.className = 'text-sm text-emerald-600 font-medium';
+        status.textContent = 'Сохранено';
+      } catch (e) {
+        status.className = 'text-sm text-red-600 font-medium';
+        status.textContent = 'Ошибка сохранения: ' + e.message;
+      }
+    });
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,4 +1,4 @@
-"""
+﻿"""
 FastAPI Routes for MiTek Processing, Costing Calculations, Quotes, and Production Workorders.
 """
 
@@ -18,6 +18,7 @@ from costing.workorders.exports import export_cutting_plan_csv, export_workorder
 from costing.quote.engine import generate_quote
 from costing.quote.pdf_export import render_quote_html
 from costing.quote.exports import export_quote_csv
+from costing.core.settings import get_truss_types, get_type_aliases, save_type_aliases
 from costing.api.schemas import CalculateRequest, CuttingOptimizeRequest, QuoteRequest, WorkorderRequest
 
 router = APIRouter(prefix="/api", tags=["Costing & Production API"])
@@ -35,6 +36,38 @@ def get_app_info():
         "version_suffix": __version_suffix__,
         "version_full": __version_full__,
     }
+
+@router.get("/admin/type-aliases", tags=["Admin"])
+def get_admin_type_aliases():
+    """
+    Типы конструкций из файла, доступные варианты из каталога и заданные для них alias.
+    """
+    all_types = get_truss_types()
+    try:
+        frames = get_current_project_data().get("frames", [])
+    except HTTPException:
+        frames = []
+    default_key = {"truss": "duopitch", "cut_timber": "cut_timber", "raw_timber": "raw_timber"}
+    present = {default_key.get(f.get("item_type"), "duopitch") for f in frames}
+    types = {k: v for k, v in all_types.items() if k in present}
+    return {
+        "status": "success",
+        "types": types,
+        "all_options": all_types,
+        "aliases": get_type_aliases(),
+    }
+
+
+@router.put("/admin/type-aliases", tags=["Admin"])
+def put_admin_type_aliases(payload: Dict[str, Any]):
+    """
+    Сохранение alias типов конструкций. Пустое значение сбрасывает alias.
+    """
+    aliases = payload.get("aliases", {})
+    if not isinstance(aliases, dict):
+        raise HTTPException(status_code=400, detail="aliases должен быть объектом")
+    return {"status": "success", "aliases": save_type_aliases(aliases)}
+
 
 # Global session cache for active project data
 CURRENT_PROJECT_DATA: Optional[Dict[str, Any]] = None

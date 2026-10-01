@@ -2,9 +2,28 @@
 
 import { appState } from '../state.js';
 
+let typeAliases = null;
+let trussCatalog = null;
+let aliasesLoading = false;
+
+function loadTypeAliases() {
+  if (aliasesLoading) return;
+  aliasesLoading = true;
+  fetch('/api/admin/type-aliases')
+    .then(r => (r.ok ? r.json() : null))
+    .then(j => {
+      typeAliases = (j && j.aliases) || {};
+      trussCatalog = (j && j.all_options) || {};
+      renderSummary();
+    })
+    .catch(() => { typeAliases = {}; trussCatalog = {}; })
+    .finally(() => { aliasesLoading = false; });
+}
+
 export function renderSummary() {
   const d = appState.data;
   if (!d) return;
+  if (typeAliases === null) loadTypeAliases();
   const gen = d.general || {};
   const sum = d.summary || {};
 
@@ -47,6 +66,15 @@ export function renderSummary() {
     ((appState.cost && appState.cost.positions) || []).forEach(p => { posByName[p.name] = p; });
     const typeLabel = f => {
       const p = posByName[f.name];
+      const aliases = typeAliases || {};
+      const cat = trussCatalog || {};
+      const key = p && p.truss_subtype;
+      const fallbackKey = f.item_type === 'truss' ? 'duopitch' : (f.item_type === 'cut_timber' ? 'cut_timber' : 'raw_timber');
+      const targetVal = (key && aliases[key]) || aliases[fallbackKey];
+      if (targetVal) {
+        if (cat[targetVal]) return cat[targetVal];
+        return targetVal;
+      }
       if (p && (p.subtype_label || p.item_type_label)) return p.subtype_label || p.item_type_label;
       return f.item_type === 'truss' ? 'Ферма' : 'Пиломатериал';
     };

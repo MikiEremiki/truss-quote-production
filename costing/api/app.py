@@ -40,6 +40,13 @@ def create_app() -> FastAPI:
             return FileResponse(str(template_path))
         return HTMLResponse("<h1>MiTek Costing Service</h1><p>Frontend template not found.</p>")
 
+    @application.get("/admin", response_class=HTMLResponse)
+    def admin():
+        template_path = BASE_DIR / "web" / "templates" / "admin.html"
+        if template_path.exists():
+            return FileResponse(str(template_path))
+        return HTMLResponse("<h1>Admin template not found.</h1>", status_code=404)
+
     return application
 
 
