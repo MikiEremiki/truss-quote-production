@@ -3,6 +3,7 @@ name = "truss-quote-production"
 version = "0.1.0"
 description = "Инженерно-экономический комплекс калькуляции ферм MiTek на МЗП и подготовки производственных заданий"
 readme = "README.md"
+license = {text = "AGPL-3.0-only"}
 requires-python = ">=3.10"
 dependencies = [
     "fastapi>=0.142.2",
