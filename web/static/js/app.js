@@ -16,6 +16,7 @@ import {
 } from './modules/api.js';
 import {
   switchTab,
+  toggleSidebar,
   initControlsAndPresets,
   applyClientProfile,
   applyAgentPreset,
@@ -59,6 +60,7 @@ window.showLoading = showLoading;
 window.fmtRub = fmtRub;
 
 window.switchTab = switchTab;
+window.toggleSidebar = toggleSidebar;
 window.initControlsAndPresets = initControlsAndPresets;
 window.applyClientProfile = applyClientProfile;
 window.applyAgentPreset = applyAgentPreset;

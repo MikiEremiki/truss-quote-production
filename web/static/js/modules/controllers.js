@@ -23,6 +23,31 @@ export function switchTab(tabId) {
   const targetBtn = document.getElementById(`btn-${tabId}`);
   if (targetTab) targetTab.classList.remove('hidden');
   if (targetBtn) targetBtn.classList.add('active');
+
+  // Dispatch resize event to trigger Three.js canvas & chart resizing
+  window.dispatchEvent(new Event('resize'));
+
+  // Close mobile sidebar if open
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (sidebar && window.innerWidth < 1024) {
+    sidebar.classList.add('-translate-x-full');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
+}
+
+export function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!sidebar) return;
+  const isHidden = sidebar.classList.contains('-translate-x-full');
+  if (isHidden) {
+    sidebar.classList.remove('-translate-x-full');
+    if (backdrop) backdrop.classList.remove('hidden');
+  } else {
+    sidebar.classList.add('-translate-x-full');
+    if (backdrop) backdrop.classList.add('hidden');
+  }
 }
 
 export function initControlsAndPresets() {

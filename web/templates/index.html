@@ -11,77 +11,180 @@
   <!-- Custom Styles -->
   <link rel="stylesheet" href="/static/css/styles.css">
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+<body class="bg-slate-50 text-slate-800 min-h-screen flex font-sans antialiased">
 
-  <!-- Header -->
-  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+  <!-- Mobile Sidebar Backdrop -->
+  <div id="sidebar-backdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 z-40 lg:hidden hidden backdrop-blur-xs transition-opacity"></div>
+
+  <!-- Sidebar Navigation -->
+  <aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 lg:w-72 bg-slate-900 text-slate-300 flex flex-col border-r border-slate-800 transition-transform duration-200 ease-in-out -translate-x-full lg:translate-x-0 lg:static lg:h-screen lg:sticky lg:top-0 shadow-xl lg:shadow-none no-print">
+    
+    <!-- Brand / Header -->
+    <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
       <div class="flex items-center space-x-3">
-        <div class="bg-blue-600 p-2.5 rounded-xl shadow-md flex items-center justify-center">
-          <i class="fa-solid fa-shapes text-2xl text-white"></i>
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-md flex items-center justify-center text-white">
+          <i class="fa-solid fa-shapes text-xl"></i>
         </div>
         <div>
-          <h1 class="text-xl font-bold tracking-tight">MiTek Engine & Costing Pro</h1>
-          <p class="text-xs text-slate-400">Калькулятор коммерческих предложений и нарядов производства МЗП</p>
+          <h1 class="text-sm font-bold tracking-tight text-white leading-tight">MiTek Engine & Costing Pro</h1>
+          <p class="text-[11px] text-slate-400">Производство МЗП & КП</p>
         </div>
       </div>
-      
-      <!-- Upload & Quick Sample Actions -->
-      <div class="flex items-center space-x-3">
-        <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
-          <i class="fa-solid fa-file-arrow-up"></i>
-          <span>Загрузить .XLSM</span>
-          <input type="file" id="file-input" accept=".xlsm,.xlsx" class="hidden" onchange="handleFileUpload(event)">
-        </label>
-        <button onclick="loadSampleData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
-          <i class="fa-solid fa-bolt text-amber-400"></i>
-          <span>Демо: Богородск 21</span>
-        </button>
-      </div>
+      <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1.5 rounded-lg focus:outline-none" title="Закрыть меню">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
     </div>
-    
-    <!-- Navigation Tabs -->
-    <div class="bg-slate-800/90 border-t border-slate-700 px-4">
-      <div class="max-w-7xl mx-auto flex space-x-6 text-sm overflow-x-auto">
-        <button onclick="switchTab('tab-summary')" id="btn-tab-summary" class="tab-btn active py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-chart-pie"></i> Обзор и Конструктив
-        </button>
-        <button onclick="switchTab('tab-positions')" id="btn-tab-positions" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-tags"></i> Позиции & Сложность работ
-        </button>
-        <button onclick="switchTab('tab-costing')" id="btn-tab-costing" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-calculator"></i> Калькулятор стоимости
-        </button>
-        <button onclick="switchTab('tab-cutting')" id="btn-tab-cutting" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-scissors"></i> Раскрой (мм)
-        </button>
-        <button onclick="switchTab('tab-plates')" id="btn-tab-plates" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-grip"></i> Пластины МЗП (м²)
-        </button>
-        <button onclick="switchTab('tab-timber')" id="btn-tab-timber" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-layer-group"></i> Заготовки
-        </button>
-        <button onclick="switchTab('tab-financials')" id="btn-tab-financials" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-chart-line text-emerald-400"></i> P&L Финансы
-        </button>
-        <button onclick="switchTab('tab-client-kp')" id="btn-tab-client-kp" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-file-invoice text-blue-400"></i> Клиентское КП
-        </button>
-        <button onclick="switchTab('tab-workorders')" id="btn-tab-workorders" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-indigo-400"></i> Наряды цеха
-        </button>
-        <button onclick="switchTab('tab-internal-estimate')" id="btn-tab-internal-estimate" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
-          <i class="fa-solid fa-shield-halved text-amber-400"></i> Смета руководителя
-        </button>
-        <a href="/admin" class="py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2 ml-auto">
-          <i class="fa-solid fa-gear text-slate-400"></i> Админка
-        </a>
-      </div>
-    </div>
-  </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+    <!-- Navigation Blocks -->
+    <div class="flex-1 overflow-y-auto custom-scrollbar px-3 py-4 space-y-5">
+
+      <!-- Блок: Продажи -->
+      <div>
+        <div class="px-3 mb-1.5 flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <i class="fa-solid fa-briefcase text-blue-400 text-xs"></i>
+          <span>Продажи</span>
+        </div>
+        <div class="space-y-0.5">
+          <button onclick="switchTab('tab-client-kp')" id="btn-tab-client-kp" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-file-invoice w-4 text-center text-blue-400"></i>
+            <span>Клиентское КП</span>
+          </button>
+          <button onclick="switchTab('tab-financials')" id="btn-tab-financials" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-chart-line w-4 text-center text-emerald-400"></i>
+            <span>P&L Финансы</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Блок: Производство -->
+      <div>
+        <div class="px-3 mb-1.5 flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <i class="fa-solid fa-industry text-indigo-400 text-xs"></i>
+          <span>Производство</span>
+        </div>
+        <div class="space-y-0.5">
+          <button onclick="switchTab('tab-workorders')" id="btn-tab-workorders" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-list-check w-4 text-center text-indigo-400"></i>
+            <span>Наряды цеха</span>
+          </button>
+          <button onclick="switchTab('tab-cutting')" id="btn-tab-cutting" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-scissors w-4 text-center text-amber-400"></i>
+            <span>Раскрой (мм)</span>
+          </button>
+          <button onclick="switchTab('tab-plates')" id="btn-tab-plates" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-grip w-4 text-center text-cyan-400"></i>
+            <span>Пластины МЗП (м²)</span>
+          </button>
+          <button onclick="switchTab('tab-timber')" id="btn-tab-timber" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-layer-group w-4 text-center text-teal-400"></i>
+            <span>Заготовки</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Блок: Внутренние расчеты -->
+      <div>
+        <div class="px-3 mb-1.5 flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <i class="fa-solid fa-calculator text-violet-400 text-xs"></i>
+          <span>Внутренние расчеты</span>
+        </div>
+        <div class="space-y-0.5">
+          <button onclick="switchTab('tab-summary')" id="btn-tab-summary" class="tab-btn active w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-chart-pie w-4 text-center text-violet-400"></i>
+            <span>Обзор и Конструктив</span>
+          </button>
+          <button onclick="switchTab('tab-positions')" id="btn-tab-positions" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-tags w-4 text-center text-sky-400"></i>
+            <span>Позиции & Сложность</span>
+          </button>
+          <button onclick="switchTab('tab-costing')" id="btn-tab-costing" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-calculator w-4 text-center text-blue-400"></i>
+            <span>Калькулятор стоимости</span>
+          </button>
+          <button onclick="switchTab('tab-internal-estimate')" id="btn-tab-internal-estimate" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-shield-halved w-4 text-center text-amber-400"></i>
+            <span>Смета руководителя</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Блок: IFC Обзор -->
+      <div>
+        <div class="px-3 mb-1.5 flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <i class="fa-solid fa-cube text-purple-400 text-xs"></i>
+          <span>IFC Обзор</span>
+        </div>
+        <div class="space-y-0.5">
+          <button onclick="switchTab('tab-ifc')" id="btn-tab-ifc" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-cube w-4 text-center text-purple-400"></i>
+            <span>3D-модель (IFC)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Блок: Настройки -->
+      <div>
+        <div class="px-3 mb-1.5 flex items-center gap-2 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+          <i class="fa-solid fa-sliders text-slate-400 text-xs"></i>
+          <span>Настройки</span>
+        </div>
+        <div class="space-y-0.5">
+          <a href="/admin" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+            <i class="fa-solid fa-gear w-4 text-center text-slate-400"></i>
+            <span>Админка настроек</span>
+          </a>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3.5 border-t border-slate-800 text-[11px] text-slate-500 flex justify-between items-center no-print">
+      <span>ДревКаркас © 2026</span>
+      <span id="app-version" class="font-mono text-slate-400">v0.1.0</span>
+    </div>
+  </aside>
+
+  <!-- Main Content Wrapper -->
+  <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+
+    <!-- Top Bar Header -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-xs px-4 lg:px-6 py-3 no-print">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Left: Mobile Toggle & Project Info -->
+        <div class="flex items-center gap-3 min-w-0">
+          <button onclick="toggleSidebar()" class="lg:hidden text-slate-600 hover:text-slate-900 p-2 rounded-lg border border-slate-200" title="Открыть меню">
+            <i class="fa-solid fa-bars text-lg"></i>
+          </button>
+          
+          <div class="flex items-center gap-2.5 truncate">
+            <div class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0 animate-pulse"></div>
+            <div class="truncate">
+              <span class="font-bold text-sm text-slate-900" id="project-title-display">Богородск 21 дом 110м2</span>
+              <span class="hidden sm:inline-block text-xs text-slate-500 ml-2" id="project-sub-display">Уклон: 35°, Шаг: 640мм, Снег: 2.3 кН/м²</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Upload & Sample Buttons -->
+        <div class="flex items-center space-x-2.5 shrink-0">
+          <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-2">
+            <i class="fa-solid fa-file-arrow-up"></i>
+            <span>Загрузить .XLSM</span>
+            <input type="file" id="file-input" accept=".xlsm,.xlsx" class="hidden" onchange="handleFileUpload(event)">
+          </label>
+          <button onclick="loadSampleData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5">
+            <i class="fa-solid fa-bolt text-amber-500"></i>
+            <span>Демо: Богородск 21</span>
+          </button>
+        </div>
+
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 lg:px-6 py-6 flex-1 w-full">
     
     <!-- Loading Spinner -->
     <div id="loading" class="hidden my-12 text-center">
@@ -160,25 +263,22 @@
         </details>
       </div>
 
-      <!-- IFC Viewer -->
-      <details class="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <summary class="font-bold text-slate-800 cursor-pointer flex items-center gap-2 p-5">
-          <i class="fa-solid fa-cube text-indigo-600"></i> 3D-просмотр модели (IFC)
-        </summary>
-        <div class="px-5 pb-5 space-y-3">
-          <div class="flex items-center gap-3">
-            <label class="cursor-pointer bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg text-xs font-medium transition shadow-sm flex items-center gap-2">
-              <i class="fa-solid fa-file-arrow-up"></i>
-              <span>Открыть .IFC</span>
-              <input type="file" id="ifc-file-input" accept=".ifc" class="hidden" onchange="handleIfcUpload(event)">
-            </label>
-            <span id="ifc-status" class="text-xs text-slate-500">Выберите IFC-файл для просмотра (ЛКМ — вращение, ПКМ — сдвиг, колесо — масштаб)</span>
+      <!-- 3D IFC Quick Card Banner -->
+      <div class="bg-gradient-to-r from-purple-900 to-indigo-900 text-white rounded-xl p-5 shadow-sm flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="p-3 bg-purple-500/20 border border-purple-400/30 rounded-xl text-2xl text-purple-300">
+            <i class="fa-solid fa-cube"></i>
           </div>
-          <div id="ifc-viewer-wrap" class="hidden">
-            <div id="ifc-canvas-container" class="w-full rounded-lg border border-slate-200 overflow-hidden" style="height: 500px;"></div>
+          <div>
+            <h4 class="font-bold text-sm text-white">Интерактивная 3D-модель (IFC)</h4>
+            <p class="text-xs text-purple-200">Просмотр геометрии стропильной системы и ферм выделен в отдельный раздел меню</p>
           </div>
         </div>
-      </details>
+        <button onclick="switchTab('tab-ifc')" class="bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-sm transition flex items-center gap-2">
+          <span>Открыть 3D Обзор</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
 
       <!-- Frames Table -->
       <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -872,15 +972,54 @@
       </div>
     </div>
 
+    <!-- TAB 11: 3D / IFC Обзор -->
+    <div id="tab-ifc" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-cube text-purple-600"></i> 3D-просмотр и визуализация модели (IFC)
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Интерактивный 3D-просмотр стропильной системы и конструкций ферм на МЗП</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <label class="cursor-pointer bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-2">
+              <i class="fa-solid fa-file-arrow-up"></i>
+              <span>Загрузить .IFC</span>
+              <input type="file" id="ifc-file-input" accept=".ifc" class="hidden" onchange="handleIfcUpload(event)">
+            </label>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs bg-slate-50 p-3.5 rounded-lg border border-slate-200 text-slate-600">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-purple-600"></i>
+            <span id="ifc-status">Выберите IFC-файл для просмотра (или загрузите файл проекта)</span>
+          </div>
+          <div class="flex items-center gap-4 text-slate-500 font-medium">
+            <span><i class="fa-solid fa-computer-mouse text-slate-400 mr-1"></i> ЛКМ: Вращение</span>
+            <span><i class="fa-regular fa-hand text-slate-400 mr-1"></i> ПКМ: Сдвиг</span>
+            <span><i class="fa-solid fa-magnifying-glass-plus text-slate-400 mr-1"></i> Колесо: Масштаб</span>
+          </div>
+        </div>
+
+        <div id="ifc-viewer-wrap" class="w-full">
+          <div id="ifc-canvas-container" class="w-full rounded-xl border border-slate-200 overflow-hidden bg-slate-900 shadow-inner" style="height: 650px;"></div>
+        </div>
+      </div>
+    </div>
+
   </main>
 
   <!-- Footer -->
-  <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 mt-auto no-print">
-    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+  <footer class="bg-white text-slate-400 text-xs py-4 border-t border-slate-200 mt-auto no-print px-4 lg:px-6">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
       <span>© 2026 Компания «ДревКаркас». Программный комплекс калькуляции и раскроя МЗП.</span>
-      <span id="app-version" class="font-mono text-slate-500">v0.1.0</span>
+      <span class="font-mono text-slate-400">MiTek Costing Pro</span>
     </div>
   </footer>
+
+  </div>
 
   <!-- Main JavaScript App Logic (Modular ES6) -->
   <script type="module" src="/static/js/app.js"></script>
