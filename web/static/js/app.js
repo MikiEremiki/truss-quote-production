@@ -46,6 +46,10 @@ import {
   renderWorkorders
 } from './modules/renderers/index.js';
 
+import { handleIfcUpload } from './modules/ifc-viewer.js';
+
+window.handleIfcUpload = handleIfcUpload;
+
 // Expose functions globally to window for DOM event handlers (onclick, onchange, etc.)
 window.appState = appState;
 window.getAppState = getAppState;
