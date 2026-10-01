@@ -1,0 +1,27 @@
+/* Стили для печати КП и сметы */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-area, #printable-area * {
+    visibility: visible;
+  }
+  #printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Активная вкладка навигации */
+.tab-btn.active {
+  border-bottom: 3px solid #2563eb;
+  color: #2563eb;
+  font-weight: 600;
+}

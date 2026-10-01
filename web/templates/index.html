@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MiTek WoodWorks — Калькулятор КП и Производство МЗП</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans">
+
+  <!-- Header -->
+  <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-blue-600 p-2.5 rounded-xl shadow-md flex items-center justify-center">
+          <i class="fa-solid fa-shapes text-2xl text-white"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight">MiTek Engine & Costing Pro</h1>
+          <p class="text-xs text-slate-400">Калькулятор коммерческих предложений и нарядов производства МЗП</p>
+        </div>
+      </div>
+      
+      <!-- Upload & Quick Sample Actions -->
+      <div class="flex items-center space-x-3">
+        <label class="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm flex items-center gap-2">
+          <i class="fa-solid fa-file-arrow-up"></i>
+          <span>Загрузить .XLSM</span>
+          <input type="file" id="file-input" accept=".xlsm,.xlsx" class="hidden" onchange="handleFileUpload(event)">
+        </label>
+        <button onclick="loadSampleData()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-amber-400"></i>
+          <span>Демо: Богородск 21</span>
+        </button>
+      </div>
+    </div>
+    
+    <!-- Navigation Tabs -->
+    <div class="bg-slate-800/90 border-t border-slate-700 px-4">
+      <div class="max-w-7xl mx-auto flex space-x-6 text-sm overflow-x-auto">
+        <button onclick="switchTab('tab-summary')" id="btn-tab-summary" class="tab-btn active py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie"></i> Обзор и Конструктив
+        </button>
+        <button onclick="switchTab('tab-positions')" id="btn-tab-positions" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-tags"></i> Позиции & Сложность работ
+        </button>
+        <button onclick="switchTab('tab-costing')" id="btn-tab-costing" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-calculator"></i> Калькулятор стоимости
+        </button>
+        <button onclick="switchTab('tab-cutting')" id="btn-tab-cutting" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-scissors"></i> Раскрой (мм)
+        </button>
+        <button onclick="switchTab('tab-plates')" id="btn-tab-plates" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-grip"></i> Пластины МЗП (м²)
+        </button>
+        <button onclick="switchTab('tab-timber')" id="btn-tab-timber" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-layer-group"></i> Заготовки
+        </button>
+        <button onclick="switchTab('tab-financials')" id="btn-tab-financials" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-chart-line text-emerald-400"></i> P&L Финансы
+        </button>
+        <button onclick="switchTab('tab-client-kp')" id="btn-tab-client-kp" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice text-blue-400"></i> Клиентское КП
+        </button>
+        <button onclick="switchTab('tab-workorders')" id="btn-tab-workorders" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-indigo-400"></i> Наряды цеха
+        </button>
+        <button onclick="switchTab('tab-internal-estimate')" id="btn-tab-internal-estimate" class="tab-btn py-3 px-2 text-slate-300 hover:text-white transition flex items-center gap-2">
+          <i class="fa-solid fa-shield-halved text-amber-400"></i> Смета руководителя
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-1 w-full">
+    
+    <!-- Loading Spinner -->
+    <div id="loading" class="hidden my-12 text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-600 border-t-transparent"></div>
+      <p class="mt-3 text-slate-600 font-medium">Обработка данных выгрузки MiTek...</p>
+    </div>
+
+    <!-- Alert / Status -->
+    <div id="status-card" class="bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-xl mb-6 flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-circle-info text-blue-600 text-lg"></i>
+        <div>
+          <span class="font-semibold" id="project-title-display">Богородск 21 дом 110м2</span>
+          <span class="text-xs text-blue-600 ml-2" id="project-sub-display">Уклон: 35°, Шаг: 640мм, Снег: 2.3 кН/м²</span>
+        </div>
+      </div>
+      <span class="text-xs font-mono bg-blue-100 text-blue-900 px-2.5 py-1 rounded-md">Политики ДК и Послойный учет активны</span>
+    </div>
+
+    <!-- TAB 1: Обзор и Конструктив -->
+    <div id="tab-summary" class="tab-content space-y-6">
+      
+      <!-- Key KPI Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-amber-50 text-amber-600 rounded-lg text-xl"><i class="fa-solid fa-cubes"></i></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Объем древесины (нетто)</p>
+            <p class="text-2xl font-bold text-slate-800" id="card-timber-vol">2.5490 м³</p>
+            <p class="text-xs text-slate-400" id="card-timber-gross">+15% запас: 2.9314 м³</p>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-emerald-50 text-emerald-600 rounded-lg text-xl"><i class="fa-solid fa-shield-virus"></i></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Площадь обработки</p>
+            <p class="text-2xl font-bold text-slate-800" id="card-surface-area">133.28 м²</p>
+            <p class="text-xs text-slate-400">4-сторонняя площадь всех заготовок</p>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg text-xl"><i class="fa-solid fa-grip-vertical"></i></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Пластины МЗП (м²)</p>
+            <p class="text-2xl font-bold text-slate-800" id="card-plates-area">1.63 м²</p>
+            <p class="text-xs text-slate-400" id="card-plates-count">64 шт (~19.2 кг)</p>
+          </div>
+        </div>
+        <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm flex items-center gap-4">
+          <div class="p-3 bg-blue-50 text-blue-600 rounded-lg text-xl"><i class="fa-solid fa-industry"></i></div>
+          <div>
+            <p class="text-xs font-semibold text-slate-500 uppercase">Физических слоев</p>
+            <p class="text-2xl font-bold text-slate-800" id="card-physical-layers">14 шт</p>
+            <p class="text-xs text-slate-400" id="card-press-points">32 точек запрессовки</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Frames Table -->
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-table-list text-blue-600"></i> Сводная ведомость марок для производства (Manufacture frames)
+          </h3>
+          <span class="text-xs bg-slate-200 text-slate-700 px-2 py-1 rounded">Послойный учет</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-100 text-slate-600 font-semibold text-xs uppercase border-b">
+              <tr>
+                <th class="py-3 px-4">Марка</th>
+                <th class="py-3 px-4">Кол-во</th>
+                <th class="py-3 px-4">Слоев (Plies)</th>
+                <th class="py-3 px-4">Всего слоев</th>
+                <th class="py-3 px-4">Пролет (мм)</th>
+                <th class="py-3 px-4">Высота (мм)</th>
+                <th class="py-3 px-4">Объем слоя (м³)</th>
+                <th class="py-3 px-4">МЗП слоя (м²)</th>
+                <th class="py-3 px-4">Суммарный V (м³)</th>
+              </tr>
+            </thead>
+            <tbody id="frames-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Roofing & Fasteners Row -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-3">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+            <i class="fa-solid fa-house text-emerald-600"></i> Геометрия кровли и погонаж узлов
+          </h3>
+          <div id="roofing-metrics-list" class="space-y-2">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-3">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2 border-b pb-2">
+            <i class="fa-solid fa-screwdriver-wrench text-amber-600"></i> Метизы и комплектующие (Fasteners)
+          </h3>
+          <div id="fasteners-list" class="space-y-2">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB 2: Позиции & Сложность работ -->
+    <div id="tab-positions" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex flex-wrap justify-between items-center gap-4">
+          <div>
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-blue-600"></i> Попозиционная настройка типов конструкций, прирезки и обработки
+            </h3>
+            <p class="text-xs text-slate-500">Автоматический подбор ставок по регламенту ДК с возможностью полного ручного переопределения</p>
+          </div>
+          <button onclick="recalculatePositions()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrows-rotate"></i> Применить и пересчитать
+          </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-100 text-slate-700 font-semibold text-xs uppercase border-b">
+              <tr>
+                <th class="py-3 px-3">Марка</th>
+                <th class="py-3 px-2">Слоев</th>
+                <th class="py-3 px-2">V (м³)</th>
+                <th class="py-3 px-3">Тип конструкции ДК</th>
+                <th class="py-3 px-2 text-center" title="Включить защитную обработку">Обраб.</th>
+                <th class="py-3 px-2 text-center" title="Включить прирезку">Прирезка</th>
+                <th class="py-3 px-2 text-right">Работа (руб/м³)</th>
+                <th class="py-3 px-2 text-right">Маржа (%)</th>
+                <th class="py-3 px-3 text-right">Себест. (руб)</th>
+                <th class="py-3 px-3 text-right">Цена (руб)</th>
+              </tr>
+            </thead>
+            <tbody id="positions-custom-tbody" class="divide-y divide-slate-100 text-xs">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: Калькулятор стоимости & КП -->
+    <div id="tab-costing" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Controls & Settings Panel -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-5 space-y-5">
+          <div class="flex justify-between items-center border-b pb-3">
+            <h3 class="font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-blue-600"></i> Параметры расчета
+            </h3>
+            <button onclick="recalculateCosting()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-1.5 rounded-lg transition">
+              Пересчитать
+            </button>
+          </div>
+
+          <!-- Client Profile Selector -->
+          <div class="space-y-1.5 bg-blue-50/70 p-3 rounded-xl border border-blue-100">
+            <label class="text-xs font-bold text-blue-900 flex items-center gap-1.5">
+              <i class="fa-solid fa-user-tag text-blue-600"></i> Профиль клиента / Ценовая политика:
+            </label>
+            <select id="sel-client-profile" class="w-full border rounded-lg text-xs p-2 bg-white font-medium shadow-xs" onchange="applyClientProfile()">
+              <!-- Options populated by JS -->
+            </select>
+            <p class="text-[11px] text-blue-700 mt-1" id="client-profile-desc">Базовые розничные расценки ДК (+58% маржа, обработка 65 ₽/м²)</p>
+          </div>
+
+          <!-- Base Material & Work Rates -->
+          <div class="space-y-3 text-xs">
+            <p class="font-bold text-slate-700 uppercase border-b pb-1 text-[11px]">1. Базовые ставки материалов и работ</p>
+            
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Цена доски С24 (руб/м³):</span>
+              <input type="number" id="inp-timber-price" value="31900" step="500" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Коэф. запаса доски:</span>
+              <input type="number" id="inp-waste-factor" value="1.15" step="0.01" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Пластины МЗП (руб/м²):</span>
+              <input type="number" id="inp-plate-price" value="4500" step="100" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Прирезка (руб/м³):</span>
+              <input type="number" id="inp-cutting-price" value="2000" step="100" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Обработка Сенеж (руб/м²):</span>
+              <input type="number" id="inp-treatment-price" value="65" step="5" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+          </div>
+
+          <!-- Services & Design Mode -->
+          <div class="space-y-3 text-xs">
+            <p class="font-bold text-slate-700 uppercase border-b pb-1 text-[11px]">2. Услуги и Проектирование</p>
+            
+            <div class="space-y-1 bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+              <label class="text-[11px] font-semibold text-slate-700">Учет проектирования в КП:</label>
+              <select id="sel-design-mode" class="w-full border rounded text-xs p-1.5 bg-white font-medium" onchange="recalculateCosting()">
+                <option value="separate">Отдельной строкой в смете и КП</option>
+                <option value="distributed">Разнести по позициям ферм</option>
+              </select>
+            </div>
+
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Стоимость проекта (руб):</span>
+              <input type="number" id="inp-design-price" value="15000" step="1000" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Крепеж и метизы (руб):</span>
+              <input type="number" id="inp-fasteners-price" value="5625" step="500" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Доставка/Логистика (руб):</span>
+              <input type="number" id="inp-logistics-price" value="12000" step="1000" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-slate-600">Накладные расходы цеха (%):</span>
+              <input type="number" id="inp-overhead-pct" value="10" step="1" class="border rounded px-2 py-1 w-24 text-right font-medium" onchange="recalculateCosting()">
+            </div>
+          </div>
+
+          <!-- Discount, Agent & VAT Module -->
+          <div class="space-y-3 text-xs bg-amber-50/60 p-3.5 rounded-xl border border-amber-200">
+            <p class="font-bold text-amber-900 uppercase border-b border-amber-200 pb-1 text-[11px]">3. Скидка, Агентские и НДС</p>
+            
+            <!-- Order Discount -->
+            <div class="space-y-1">
+              <label class="text-slate-700 font-semibold">Общая скидка на заказ:</label>
+              <div class="flex gap-2">
+                <select id="sel-discount-type" class="border rounded text-xs p-1 bg-white w-24" onchange="recalculateFinancials()">
+                  <option value="percent">% Скидки</option>
+                  <option value="amount">Сумма (₽)</option>
+                </select>
+                <input type="number" id="inp-discount-val" value="0" step="1" class="border rounded px-2 py-1 flex-1 text-right font-bold text-amber-800" onchange="recalculateFinancials()">
+              </div>
+            </div>
+
+            <!-- Agent Module -->
+            <div class="space-y-1.5 pt-2 border-t border-amber-200/80">
+              <label class="text-slate-700 font-semibold flex justify-between">
+                <span>Агентское вознаграждение:</span>
+                <span class="text-[10px] text-slate-500">(после всех наценок и допов)</span>
+              </label>
+              <select id="sel-agent-preset" class="w-full border rounded text-xs p-1.5 bg-white font-medium" onchange="applyAgentPreset()">
+                <!-- Populated by JS -->
+              </select>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-600 text-[11px]">Агентский %:</span>
+                <input type="number" id="inp-agent-pct" value="0" step="0.5" min="0" max="100" class="border rounded px-2 py-1 w-20 text-right font-bold text-blue-700" onchange="recalculateFinancials()">
+              </div>
+              <div class="space-y-1">
+                <label class="text-[11px] text-slate-600">Режим применения агентских:</label>
+                <select id="sel-agent-mode" class="w-full border rounded text-xs p-1.5 bg-white font-medium" onchange="recalculateFinancials()">
+                  <option value="markup">«В плюс» — надбавка сверху к цене КП</option>
+                  <option value="margin">«Из маржи» — не влияет на цену КП (из прибыли ДК)</option>
+                  <option value="discount">«В минус» — скидка клиенту за счет бонуса агента</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- VAT Module -->
+            <div class="pt-2 border-t border-amber-200/80 flex justify-between items-center">
+              <span class="font-semibold text-slate-700">Ставка НДС (%):</span>
+              <div class="flex items-center gap-1.5">
+                <input type="number" id="inp-vat-pct" value="0" step="1" min="0" max="100" class="border rounded px-2 py-1 w-20 text-right font-bold text-slate-800" onchange="recalculateFinancials()">
+                <span class="text-xs text-slate-500 font-bold">%</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Cost Breakdown & Commercial Proposal Summary -->
+        <div class="space-y-6 lg:col-span-2">
+          
+          <!-- Summary Total Card -->
+          <div class="bg-gradient-to-r from-slate-900 to-blue-900 text-white rounded-xl shadow-md p-6 flex flex-wrap justify-between items-center gap-4">
+            <div>
+              <p class="text-xs text-blue-200 uppercase font-semibold">Итоговая стоимость договора (КП)</p>
+              <p class="text-4xl font-extrabold tracking-tight mt-1" id="cost-final-price">0 ₽</p>
+              <p class="text-xs text-slate-300 mt-1" id="cost-price-per-m2">0 ₽ / м² кровли</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xs text-blue-200 uppercase font-semibold">Себестоимость / Маржа</p>
+              <p class="text-2xl font-bold text-slate-200 mt-1" id="cost-prime-total">0 ₽</p>
+              <p class="text-xs text-emerald-400 mt-1" id="cost-profit-val">Чистая прибыль: +0 ₽</p>
+            </div>
+            <div class="w-full pt-4 border-t border-slate-700/60 flex justify-between items-center no-print">
+              <div class="text-xs text-slate-300 flex items-center gap-4">
+                <span id="badge-pure-profit" class="bg-emerald-500/20 text-emerald-300 px-2.5 py-1 rounded-md font-mono">Прибыль чисто конструкций: 0 ₽</span>
+                <span id="badge-agent-val" class="bg-blue-500/20 text-blue-300 px-2.5 py-1 rounded-md font-mono">Бонус агента: 0 ₽</span>
+              </div>
+              <button onclick="window.print()" class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center gap-2">
+                <i class="fa-solid fa-print"></i> Печать / PDF
+              </button>
+            </div>
+          </div>
+
+          <!-- Cost Table -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden" id="printable-area">
+            <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+              <h3 class="font-bold text-slate-800">Калькуляция структуры затрат (Cost Breakdown)</h3>
+              <span class="text-xs text-slate-500" id="print-date">Дата расчета: 01.10.2026</span>
+            </div>
+            <div class="p-6 space-y-4">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <p class="font-semibold text-slate-700 border-b pb-1">1. Материалы и обработка</p>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Пиломатериал С24 (с запасом):</span>
+                    <span class="font-semibold" id="c-timber">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Пластины МЗП (м²):</span>
+                    <span class="font-semibold" id="c-plates">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Антисептирование (по площади):</span>
+                    <span class="font-semibold" id="c-treatment">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Крепеж и метизы:</span>
+                    <span class="font-semibold" id="c-fasteners">0 ₽</span>
+                  </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <p class="font-semibold text-slate-700 border-b pb-1">2. Производство, проект и доставка</p>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Прирезка / Торцовка:</span>
+                    <span class="font-semibold" id="c-cutting">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Сборка ферм на МЗП (послойно):</span>
+                    <span class="font-semibold" id="c-assembly">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Проектирование:</span>
+                    <span class="font-semibold" id="c-design">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs">
+                    <span class="text-slate-600">Доставка на объект:</span>
+                    <span class="font-semibold" id="c-logistics">0 ₽</span>
+                  </div>
+                  <div class="flex justify-between text-xs border-t pt-1">
+                    <span class="text-slate-600">Накладные расходы цеха:</span>
+                    <span class="font-semibold" id="c-overhead">0 ₽</span>
+                  </div>
+                </div>
+
+              </div>
+
+              <!-- Sections Cost Breakdown -->
+              <div class="mt-4 border-t pt-4">
+                <h4 class="text-xs font-bold uppercase text-slate-500 mb-2">Расход древесины и площади по сечениям</h4>
+                <div id="sections-cost-list" class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <!-- Rendered via JS -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- TAB 4: Оптимизация раскроя (мм) -->
+    <div id="tab-cutting" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+        <div class="flex flex-wrap justify-between items-center gap-4 border-b pb-4">
+          <div>
+            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-maximize text-blue-600"></i> Карта раскроя заготовок (1D Stock Cutting)
+            </h3>
+            <p class="text-xs text-slate-500">Автоматическая раскладка заготовок в хлысты произвольной длины (в мм) с учетом пропила (4 мм)</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="text-xs font-semibold text-slate-600">Длина хлыста (мм):</span>
+            <input type="number" id="inp-stock-len-mm" value="6000" step="50" min="1000" max="13500" class="border rounded-lg text-sm px-3 py-1.5 bg-slate-50 w-28 text-center font-bold text-blue-700 focus:ring-2 focus:ring-blue-500 outline-none" onchange="recalculateCutting()">
+            <button onclick="recalculateCutting()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-lg transition">
+              Пересчитать раскрой
+            </button>
+            <a href="/api/cutting/download/csv" download class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-csv"></i> Экспорт раскроя (CSV)
+            </a>
+          </div>
+        </div>
+
+        <!-- Cutting KPI Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 my-6">
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <p class="text-xs text-slate-500">Всего стандартных хлыстов</p>
+            <p class="text-xl font-bold text-slate-800" id="cut-summary-bars">0 шт</p>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <p class="text-xs text-slate-500">Закупаемый метраж</p>
+            <p class="text-xl font-bold text-blue-600" id="cut-summary-stock-m">0.00 м</p>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <p class="text-xs text-slate-500">Полезный метраж (нетто)</p>
+            <p class="text-xl font-bold text-emerald-600" id="cut-summary-net-m">0.00 м</p>
+          </div>
+          <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <p class="text-xs text-slate-500">Деловой отход</p>
+            <p class="text-xl font-bold text-amber-600" id="cut-summary-waste-pct">0.0 %</p>
+          </div>
+        </div>
+
+        <!-- Cutting Patterns per Section -->
+        <div id="cutting-patterns-container" class="space-y-6">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 5: Пластины МЗП (м²) -->
+    <div id="tab-plates" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-grip text-indigo-600"></i> Ведомость металлических зубчатых пластин МЗП (в м²)
+          </h3>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-100 text-slate-600 font-semibold text-xs uppercase border-b">
+              <tr>
+                <th class="py-3 px-4">Ферма</th>
+                <th class="py-3 px-4">Размер (мм)</th>
+                <th class="py-3 px-4">Тип</th>
+                <th class="py-3 px-4">Кол-во (шт)</th>
+                <th class="py-3 px-4">Площадь 1 шт (м²)</th>
+                <th class="py-3 px-4">Суммарная площадь (м²)</th>
+                <th class="py-3 px-4">Вес (~кг)</th>
+              </tr>
+            </thead>
+            <tbody id="plates-table-body" class="divide-y divide-slate-100">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: Спецификация заготовок -->
+    <div id="tab-timber" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-layer-group text-amber-600"></i> Деталировка деревянных заготовок (Timber Cutlist)
+          </h3>
+        </div>
+        <div class="overflow-x-auto max-h-[650px]">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-slate-100 text-slate-600 font-semibold text-xs uppercase border-b sticky top-0">
+              <tr>
+                <th class="py-3 px-4">Марка</th>
+                <th class="py-3 px-4">Позиция</th>
+                <th class="py-3 px-4">Тип детали</th>
+                <th class="py-3 px-4">Кол-во</th>
+                <th class="py-3 px-4">Сечение</th>
+                <th class="py-3 px-4">Длина (мм)</th>
+                <th class="py-3 px-4">Сорт</th>
+                <th class="py-3 px-4">Объем (м³)</th>
+                <th class="py-3 px-4">Площадь 4-х гран. (м²)</th>
+              </tr>
+            </thead>
+            <tbody id="timber-table-body" class="divide-y divide-slate-100 text-xs">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 7: Финансовый анализ (P&L) -->
+    <div id="tab-financials" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-6">
+        <div class="border-b pb-4 flex justify-between items-center">
+          <div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-chart-line text-emerald-600"></i> Раздельный финансовый анализ заказа (P&L)
+            </h3>
+            <p class="text-xs text-slate-500">Разделение прибыли чисто от производства конструкций и сопутствующих услуг (допов)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Card 1: Pure Structures -->
+          <div class="bg-emerald-50/70 border border-emerald-200 p-5 rounded-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-emerald-200 pb-2">
+              <span class="text-xs font-bold text-emerald-900 uppercase">1. Чисто конструкции</span>
+              <i class="fa-solid fa-shapes text-emerald-600"></i>
+            </div>
+            <div class="space-y-1.5 text-xs text-emerald-950">
+              <div class="flex justify-between">
+                <span>Себестоимость:</span>
+                <span class="font-mono font-semibold" id="pl-str-cost">0 ₽</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Отпускная цена:</span>
+                <span class="font-mono font-semibold" id="pl-str-sale">0 ₽</span>
+              </div>
+              <div class="flex justify-between border-t border-emerald-200 pt-2 font-bold text-sm text-emerald-900">
+                <span>Прибыль конструкций:</span>
+                <span class="font-mono text-emerald-700" id="pl-str-profit">+0 ₽</span>
+              </div>
+              <div class="flex justify-between text-[11px] text-emerald-700">
+                <span>Маржинальность:</span>
+                <span class="font-mono" id="pl-str-margin">0 %</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Extras -->
+          <div class="bg-blue-50/70 border border-blue-200 p-5 rounded-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-blue-200 pb-2">
+              <span class="text-xs font-bold text-blue-900 uppercase">2. Дополнительные услуги</span>
+              <i class="fa-solid fa-truck-ramp-box text-blue-600"></i>
+            </div>
+            <div class="space-y-1.5 text-xs text-blue-950">
+              <div class="flex justify-between">
+                <span>Себестоимость:</span>
+                <span class="font-mono font-semibold" id="pl-ext-cost">0 ₽</span>
+              </div>
+              <div class="flex justify-between">
+                <span>Отпускная цена:</span>
+                <span class="font-mono font-semibold" id="pl-ext-sale">0 ₽</span>
+              </div>
+              <div class="flex justify-between border-t border-blue-200 pt-2 font-bold text-sm text-blue-900">
+                <span>Прибыль допов:</span>
+                <span class="font-mono text-blue-700" id="pl-ext-profit">+0 ₽</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Final Company Result -->
+          <div class="bg-slate-900 text-white p-5 rounded-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
+              <span class="text-xs font-bold text-slate-300 uppercase">3. Итоговая прибыль ДК</span>
+              <i class="fa-solid fa-coins text-amber-400"></i>
+            </div>
+            <div class="space-y-1.5 text-xs">
+              <div class="flex justify-between text-slate-300">
+                <span>Скидка на заказ:</span>
+                <span class="font-mono text-amber-300" id="pl-discount-val">0 ₽</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span>Комиссия агента:</span>
+                <span class="font-mono text-blue-300" id="pl-agent-val">0 ₽</span>
+              </div>
+              <div class="flex justify-between border-t border-slate-700 pt-2 font-bold text-sm text-white">
+                <span>Чистая прибыль ДК:</span>
+                <span class="font-mono text-emerald-400 text-base" id="pl-net-profit">+0 ₽</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 8: Клиентское КП (чистое) -->
+    <div id="tab-client-kp" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-4xl mx-auto space-y-6">
+        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
+          <div>
+            <h2 class="text-2xl font-bold text-slate-900">Коммерческое предложение</h2>
+            <p class="text-xs text-slate-500">Компания «ДревКаркас» — Деревянные стропильные фермы на МЗП</p>
+          </div>
+          <div class="flex items-center gap-3 no-print">
+            <a href="/api/quote/download/html" download class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-download"></i> Скачать HTML
+            </a>
+            <a href="/api/quote/download/csv" download class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-csv"></i> Скачать CSV (Excel)
+            </a>
+            <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+              <i class="fa-solid fa-print"></i> Печать КП
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-slate-50 p-4 rounded-xl border text-xs grid grid-cols-2 gap-4">
+          <div>
+            <p class="font-bold text-slate-700">Объект: <span id="kp-obj-name" class="font-normal">Богородск 21 дом 110м2</span></p>
+            <p class="font-bold text-slate-700">Площадь кровли: <span id="kp-roof-area" class="font-normal">106.65 м²</span></p>
+          </div>
+          <div class="text-right">
+            <p class="font-bold text-slate-700">Дата: <span id="kp-date" class="font-normal">01.10.2026</span></p>
+            <p class="font-bold text-slate-700">Срок изготовления: <span class="font-normal">от 5 рабочих дней</span></p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-slate-200">
+            <thead class="bg-slate-100 font-bold uppercase text-slate-700">
+              <tr>
+                <th class="py-2.5 px-3 border-b">№</th>
+                <th class="py-2.5 px-3 border-b">Наименование позиции / услуги</th>
+                <th class="py-2.5 px-3 border-b text-center">Кол-во</th>
+                <th class="py-2.5 px-3 border-b text-right">Сумма (₽)</th>
+              </tr>
+            </thead>
+            <tbody id="kp-table-body" class="divide-y divide-slate-200">
+              <!-- Rendered via JS -->
+            </tbody>
+            <tfoot class="bg-slate-50 font-bold text-sm">
+              <tr>
+                <td colspan="3" class="py-3 px-3 text-right">ИТОГО К ОПЛАТЕ:</td>
+                <td class="py-3 px-3 text-right text-blue-700 font-mono" id="kp-total-sum">0 ₽</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 9: Наряды цеха (Workorders) -->
+    <div id="tab-workorders" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-6xl mx-auto space-y-6">
+        <div class="flex flex-wrap justify-between items-center border-b pb-4 gap-4">
+          <div>
+            <div class="flex items-center gap-3">
+              <span class="px-3 py-1 bg-indigo-100 text-indigo-800 font-mono text-sm font-bold rounded-lg" id="wo-order-id">WO-—</span>
+              <h2 class="text-xl font-bold text-slate-900">Производственный наряд цеха сборки</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              Объект: <span id="wo-project-name" class="font-semibold text-slate-700">—</span> | Дата формирования: <span id="wo-created-at" class="font-mono">—</span>
+            </p>
+          </div>
+          <div class="flex items-center gap-3 no-print">
+            <button onclick="recalculateWorkorders()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-2">
+              <i class="fa-solid fa-arrows-rotate"></i> Обновить наряды
+            </button>
+            <a href="/api/workorders/download/csv" download class="bg-indigo-600 hover:bg-indigo-700 text-white text-xs px-3 py-2 rounded-lg font-medium transition flex items-center gap-1.5">
+              <i class="fa-solid fa-file-csv"></i> Экспорт нарядов (CSV)
+            </a>
+            <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+              <i class="fa-solid fa-print"></i> Печать наряда
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI summary -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
+            <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg text-lg"><i class="fa-solid fa-layer-group"></i></div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Сборочных единиц (слоев)</p>
+              <p class="text-2xl font-bold text-slate-800" id="wo-kpi-layers">0</p>
+            </div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
+            <div class="p-3 bg-blue-100 text-blue-600 rounded-lg text-lg"><i class="fa-solid fa-bullseye"></i></div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Точек запрессовки</p>
+              <p class="text-2xl font-bold text-slate-800" id="wo-kpi-press">0</p>
+            </div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
+            <div class="p-3 bg-amber-100 text-amber-600 rounded-lg text-lg"><i class="fa-solid fa-cubes"></i></div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Объем древесины на сборку</p>
+              <p class="text-2xl font-bold text-slate-800" id="wo-kpi-timber">0.0000 м³</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Assembly Tasks Table -->
+        <div class="space-y-2">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-tasks text-indigo-600"></i> Послойные сборочные задания для стола / пресса
+          </h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 font-bold uppercase text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">Код задачи</th>
+                  <th class="py-2.5 px-3">Марка фермы</th>
+                  <th class="py-2.5 px-3">Слой пакета</th>
+                  <th class="py-2.5 px-3">Пакет</th>
+                  <th class="py-2.5 px-3">Габариты</th>
+                  <th class="py-2.5 px-3 text-center">Точек МЗП</th>
+                  <th class="py-2.5 px-3 text-right">Объем слоя</th>
+                  <th class="py-2.5 px-3 text-right">Площадь МЗП</th>
+                </tr>
+              </thead>
+              <tbody id="wo-tasks-body" class="divide-y divide-slate-100 font-mono">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Plates summary for press workers -->
+        <div class="space-y-2">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-grip text-blue-600"></i> Сводная ведомость пластин МЗП для оператора пресса
+          </h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 font-bold uppercase text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="py-2 px-3 text-center w-12">№</th>
+                  <th class="py-2 px-3">Типоразмер МЗП (ШхД)</th>
+                  <th class="py-2 px-3 text-center">Калибр</th>
+                  <th class="py-2 px-3 text-center">Количество</th>
+                  <th class="py-2 px-3 text-right">Общая площадь</th>
+                </tr>
+              </thead>
+              <tbody id="wo-plates-body" class="divide-y divide-slate-100">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- TAB 10: Внутренняя смета руководителя -->
+    <div id="tab-internal-estimate" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-8 max-w-5xl mx-auto space-y-6">
+        <div class="flex justify-between items-center border-b pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-amber-600"></i> Внутренняя смета руководителя (Costing & Margin Sheet)
+            </h2>
+            <p class="text-xs text-slate-500">Конфиденциально: полный расчет себестоимости, выплат агентам и чистой прибыли</p>
+          </div>
+          <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-white text-xs px-4 py-2 rounded-lg font-medium transition flex items-center gap-2">
+            <i class="fa-solid fa-print"></i> Печать сметы
+          </button>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border border-slate-200">
+            <thead class="bg-slate-100 font-bold uppercase text-slate-700">
+              <tr>
+                <th class="py-2.5 px-3 border-b">Статья затрат / Доход</th>
+                <th class="py-2.5 px-3 border-b text-right">Себестоимость</th>
+                <th class="py-2.5 px-3 border-b text-right">Отпускная цена</th>
+                <th class="py-2.5 px-3 border-b text-right">Маржа / Дельта</th>
+              </tr>
+            </thead>
+            <tbody id="internal-estimate-body" class="divide-y divide-slate-200 font-mono">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 mt-auto no-print">
+    <div class="max-w-7xl mx-auto px-4 flex justify-between items-center">
+      <span>© 2026 Компания «ДревКаркас». Программный комплекс калькуляции и раскроя МЗП.</span>
+      <span id="app-version" class="font-mono text-slate-500">v0.1.0</span>
+    </div>
+  </footer>
+
+  <!-- Main JavaScript App Logic (Modular ES6) -->
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>
