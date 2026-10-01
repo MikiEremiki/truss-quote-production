@@ -18,8 +18,11 @@ export function renderWorkorders() {
   if (projEl) projEl.innerText = wo.project_name || '—';
 
   // KPI Cards
-  const kpiLayers = document.getElementById('wo-kpi-layers');
-  if (kpiLayers) kpiLayers.innerText = wo.total_physical_layers || 0;
+  const kpiFrames = document.getElementById('wo-kpi-frames');
+  if (kpiFrames) kpiFrames.innerText = `${wo.total_frames_count || wo.total_physical_layers || 0} шт`;
+
+  const kpiBoards = document.getElementById('wo-kpi-boards');
+  if (kpiBoards) kpiBoards.innerText = `${wo.total_boards_count || 0} шт`;
 
   const kpiPress = document.getElementById('wo-kpi-press');
   if (kpiPress) kpiPress.innerText = wo.total_press_points || 0;
@@ -27,22 +30,60 @@ export function renderWorkorders() {
   const kpiTimber = document.getElementById('wo-kpi-timber');
   if (kpiTimber) kpiTimber.innerText = `${(wo.total_timber_vol_m3 || 0).toFixed(4)} м³`;
 
-  // Assembly Tasks Table (Послойные наряды цеха)
+  // Timber / Boards Requirement Table (Калькуляция потребности в досках)
+  const boardsBody = document.getElementById('wo-boards-body');
+  if (boardsBody) {
+    if (!wo.boards_summary || wo.boards_summary.length === 0) {
+      boardsBody.innerHTML = '<tr><td colspan="8" class="text-center py-4 text-slate-400">Нет данных по пиломатериалу</td></tr>';
+    } else {
+      const boardsRows = wo.boards_summary.map((b, idx) => `
+        <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+          <td class="py-2.5 px-3 text-center text-slate-500">${idx + 1}</td>
+          <td class="py-2.5 px-3 font-semibold text-slate-900">${b.section}</td>
+          <td class="py-2.5 px-3 text-center text-slate-700">${(b.stock_length_m || 6.0).toFixed(1)} м</td>
+          <td class="py-2.5 px-3 text-center font-bold text-teal-700">${b.total_boards} шт</td>
+          <td class="py-2.5 px-3 text-right font-mono text-slate-700">${(b.total_length_m || 0).toFixed(1)} м</td>
+          <td class="py-2.5 px-3 text-right font-mono font-semibold text-slate-800">${(b.total_volume_m3 || 0).toFixed(4)} м³</td>
+          <td class="py-2.5 px-3 text-center text-slate-700">${b.parts_count || 0} шт</td>
+          <td class="py-2.5 px-3 text-right font-mono text-amber-700">${(b.waste_pct || 0).toFixed(1)}%</td>
+        </tr>
+      `).join('');
+
+      if (wo.boards_summary.length > 1) {
+        const totBoards = wo.boards_summary.reduce((acc, b) => acc + (b.total_boards || 0), 0);
+        const totLen = wo.boards_summary.reduce((acc, b) => acc + (b.total_length_m || 0), 0);
+        const totVol = wo.boards_summary.reduce((acc, b) => acc + (b.total_volume_m3 || 0), 0);
+        const totParts = wo.boards_summary.reduce((acc, b) => acc + (b.parts_count || 0), 0);
+        const netLen = wo.boards_summary.reduce((acc, b) => acc + (b.net_length_m || 0), 0);
+        const avgWaste = totLen > 0 ? ((totLen - netLen) / totLen * 100) : 0;
+
+        boardsBody.innerHTML = boardsRows + `
+          <tr class="bg-slate-100/90 font-bold border-t-2 border-slate-300">
+            <td class="py-2.5 px-3 text-center" colspan="3">ИТОГО ПО ЗАКАЗУ:</td>
+            <td class="py-2.5 px-3 text-center text-teal-800">${totBoards} шт</td>
+            <td class="py-2.5 px-3 text-right font-mono">${totLen.toFixed(1)} м</td>
+            <td class="py-2.5 px-3 text-right font-mono text-indigo-900">${totVol.toFixed(4)} м³</td>
+            <td class="py-2.5 px-3 text-center">${totParts} шт</td>
+            <td class="py-2.5 px-3 text-right font-mono text-amber-800">${avgWaste.toFixed(1)}%</td>
+          </tr>
+        `;
+      } else {
+        boardsBody.innerHTML = boardsRows;
+      }
+    }
+  }
+
+  // Assembly Tasks Table (Сборочные задания для стола / пресса)
   const tasksBody = document.getElementById('wo-tasks-body');
   if (tasksBody) {
     if (!wo.assembly_tasks || wo.assembly_tasks.length === 0) {
-      tasksBody.innerHTML = '<tr><td colspan="8" class="text-center py-6 text-slate-400">Нет сборочных заданий</td></tr>';
+      tasksBody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400">Нет сборочных заданий</td></tr>';
     } else {
       tasksBody.innerHTML = wo.assembly_tasks.map(t => `
         <tr class="hover:bg-slate-50 transition border-b border-slate-100">
           <td class="py-2.5 px-3 font-mono font-bold text-blue-700">${t.task_id}</td>
           <td class="py-2.5 px-3 font-semibold text-slate-900">${t.frame_name}</td>
-          <td class="py-2.5 px-3">
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-              Слой ${t.layer_num} из ${t.total_layers_for_frame}
-            </span>
-          </td>
-          <td class="py-2.5 px-3 text-slate-600 text-xs">${t.packet_info}</td>
+          <td class="py-2.5 px-3 text-center font-bold text-slate-800">${t.qty || 1} шт</td>
           <td class="py-2.5 px-3 text-slate-700 text-xs">
             L=${t.span_mm} мм, H=${t.height_mm} мм, ∠${t.pitch_deg}°
           </td>
@@ -58,7 +99,7 @@ export function renderWorkorders() {
   const platesBody = document.getElementById('wo-plates-body');
   if (platesBody) {
     if (!wo.plates_summary || wo.plates_summary.length === 0) {
-      platesBody.innerHTML = '<tr><td colspan="4" class="text-center py-4 text-slate-400">Нет данных по МЗП</td></tr>';
+      platesBody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-slate-400">Нет данных по МЗП</td></tr>';
     } else {
       platesBody.innerHTML = wo.plates_summary.map((p, idx) => `
         <tr class="hover:bg-slate-50 transition border-b border-slate-100">

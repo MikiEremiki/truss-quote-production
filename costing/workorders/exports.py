@@ -65,33 +65,54 @@ def export_workorders_csv(workorders_data: Dict[str, Any]) -> str:
     writer.writerow(["ПРОИЗВОДСТВЕННЫЙ НАРЯД ЦЕХА СБОРКИ МЗП", workorders_data.get("order_id", "")])
     writer.writerow(["Объект / Проект", workorders_data.get("project_name", "")])
     writer.writerow(["Дата формирования", workorders_data.get("created_at", "")])
-    writer.writerow(["Всего физических слоев / сборочных задач", workorders_data.get("total_physical_layers", 0)])
+    writer.writerow(["Всего конструкций / ферм (шт)", workorders_data.get("total_frames_count", workorders_data.get("total_physical_layers", 0))])
+    writer.writerow(["Всего стандартных досок 6м (шт)", workorders_data.get("total_boards_count", 0)])
     writer.writerow(["Всего точек запрессовки", workorders_data.get("total_press_points", 0)])
-    writer.writerow(["Общий объем древесины на сборку (м³)", workorders_data.get("total_timber_vol_m3", 0)])
+    writer.writerow(["Общий объем древесины на заказ (м³)", workorders_data.get("total_timber_vol_m3", 0)])
     writer.writerow([])
 
-    # Таблица сборочных задач
+    # 1. Потребность в досках по сечениям
+    writer.writerow(["ПОТРЕБНОСТЬ В ПИЛОМАТЕРИАЛЕ ДЛЯ ЗАКАЗА (ДОСКИ ПО СЕЧЕНИЯМ)"])
+    writer.writerow([
+        "Сечение",
+        "Длина доски (м)",
+        "Кол-во досок (шт)",
+        "Общий метраж (пог. м)",
+        "Объем пиломатериала (м³)",
+        "Кол-во заготовок (шт)",
+        "Отход раскроя (%)"
+    ])
+    for b in workorders_data.get("boards_summary", []):
+        writer.writerow([
+            b.get("section", ""),
+            f"{b.get('stock_length_m', 6.0):.1f}",
+            b.get("total_boards", 0),
+            f"{b.get('total_length_m', 0):.2f}",
+            f"{b.get('total_volume_m3', 0):.4f}",
+            b.get("parts_count", 0),
+            f"{b.get('waste_pct', 0):.1f}%"
+        ])
+    writer.writerow([])
+
+    # 2. Таблица сборочных задач
+    writer.writerow(["СБОРОЧНЫЕ ЗАДАНИЯ ДЛЯ СТОЛА / ПРЕССА"])
     writer.writerow([
         "Код задачи",
         "Марка фермы",
-        "Слой пакета",
-        "Всего слоев фермы",
-        "Комплектация пакета",
+        "Количество (шт)",
         "Пролет (мм)",
         "Высота (мм)",
         "Уклон (град)",
         "Точек МЗП",
-        "Объем древесины на слой (м³)",
-        "Площадь МЗП на слой (м²)"
+        "Объем древесины (м³)",
+        "Площадь МЗП (м²)"
     ])
 
     for task in workorders_data.get("assembly_tasks", []):
         writer.writerow([
             task.get("task_id", ""),
             task.get("frame_name", ""),
-            task.get("layer_num", 1),
-            task.get("total_layers_for_frame", 1),
-            task.get("packet_info", ""),
+            task.get("qty", 1),
             task.get("span_mm", 0),
             task.get("height_mm", 0),
             task.get("pitch_deg", 0),

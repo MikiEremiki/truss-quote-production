@@ -864,12 +864,19 @@
         </div>
 
         <!-- KPI summary -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
-            <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg text-lg"><i class="fa-solid fa-layer-group"></i></div>
+            <div class="p-3 bg-indigo-100 text-indigo-600 rounded-lg text-lg"><i class="fa-solid fa-shapes"></i></div>
             <div>
-              <p class="text-xs font-semibold text-slate-500 uppercase">Сборочных единиц (слоев)</p>
-              <p class="text-2xl font-bold text-slate-800" id="wo-kpi-layers">0</p>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Всего ферм / конструкций</p>
+              <p class="text-2xl font-bold text-slate-800" id="wo-kpi-frames">0 шт</p>
+            </div>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
+            <div class="p-3 bg-teal-100 text-teal-600 rounded-lg text-lg"><i class="fa-solid fa-tree"></i></div>
+            <div>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Потребность в досках (6м)</p>
+              <p class="text-2xl font-bold text-teal-700" id="wo-kpi-boards">0 шт</p>
             </div>
           </div>
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
@@ -882,16 +889,42 @@
           <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex items-center gap-4">
             <div class="p-3 bg-amber-100 text-amber-600 rounded-lg text-lg"><i class="fa-solid fa-cubes"></i></div>
             <div>
-              <p class="text-xs font-semibold text-slate-500 uppercase">Объем древесины на сборку</p>
+              <p class="text-xs font-semibold text-slate-500 uppercase">Объем древесины на заказ</p>
               <p class="text-2xl font-bold text-slate-800" id="wo-kpi-timber">0.0000 м³</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Timber / Boards Requirement Table (Калькуляция досок по сечениям) -->
+        <div class="space-y-2">
+          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-tree text-teal-600"></i> Потребность в пиломатериале для заказа (расчет досок по сечениям)
+          </h3>
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100 font-bold uppercase text-slate-700 border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3 text-center w-12">№</th>
+                  <th class="py-2.5 px-3">Сечение доски</th>
+                  <th class="py-2.5 px-3 text-center">Длина доски</th>
+                  <th class="py-2.5 px-3 text-center">Количество досок</th>
+                  <th class="py-2.5 px-3 text-right">Общий метраж</th>
+                  <th class="py-2.5 px-3 text-right">Объем пиломатериала</th>
+                  <th class="py-2.5 px-3 text-center">Заготовок в заказе</th>
+                  <th class="py-2.5 px-3 text-right">Отход раскроя</th>
+                </tr>
+              </thead>
+              <tbody id="wo-boards-body" class="divide-y divide-slate-100 font-mono">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
           </div>
         </div>
 
         <!-- Assembly Tasks Table -->
         <div class="space-y-2">
           <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-tasks text-indigo-600"></i> Послойные сборочные задания для стола / пресса
+            <i class="fa-solid fa-tasks text-indigo-600"></i> Сборочные задания для стола / пресса
           </h3>
           <div class="overflow-x-auto border border-slate-200 rounded-xl">
             <table class="w-full text-left text-xs">
@@ -899,11 +932,10 @@
                 <tr>
                   <th class="py-2.5 px-3">Код задачи</th>
                   <th class="py-2.5 px-3">Марка фермы</th>
-                  <th class="py-2.5 px-3">Слой пакета</th>
-                  <th class="py-2.5 px-3">Пакет</th>
+                  <th class="py-2.5 px-3 text-center">Количество</th>
                   <th class="py-2.5 px-3">Габариты</th>
                   <th class="py-2.5 px-3 text-center">Точек МЗП</th>
-                  <th class="py-2.5 px-3 text-right">Объем слоя</th>
+                  <th class="py-2.5 px-3 text-right">Объем древесины</th>
                   <th class="py-2.5 px-3 text-right">Площадь МЗП</th>
                 </tr>
               </thead>

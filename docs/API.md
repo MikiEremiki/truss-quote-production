@@ -171,13 +171,71 @@
 ---
 
 ### 9. `POST /api/workorders`
-Генерирует комплект производственных нарядов для цеха, включая послойные сборочные задания и карты раскроя хлыстов.
+Генерирует комплект производственных нарядов для цеха, включая расчет потребности в пиломатериале по сечениям (хлысты 6.0 м), сборочные задания по маркам ферм, карты раскроя хлыстов и сводную ведомость пластин МЗП.
 
 **Тело запроса (JSON):**
 ```json
 {
   "stock_length_mm": 6000.0,
   "kerf_mm": 4.0
+}
+```
+
+**Ответ (200 OK):**
+```json
+{
+  "status": "success",
+  "workorders": {
+    "order_id": "WO-261001-2015",
+    "project_name": "Богородск 21 дом 110м2",
+    "created_at": "01.10.2026 20:15",
+    "total_frames_count": 25,
+    "total_physical_layers": 32,
+    "total_boards_count": 84,
+    "total_boards_meters": 504.0,
+    "total_press_points": 740,
+    "total_timber_vol_m3": 3.8450,
+    "boards_summary": [
+      {
+        "section": "45x145",
+        "stock_length_m": 6.0,
+        "stock_length_mm": 6000,
+        "total_boards": 54,
+        "total_length_m": 324.0,
+        "net_length_m": 298.5,
+        "total_volume_m3": 2.1141,
+        "net_volume_m3": 1.9477,
+        "parts_count": 142,
+        "waste_pct": 7.87
+      }
+    ],
+    "assembly_tasks": [
+      {
+        "task_id": "TSK-001",
+        "frame_name": "Ф1",
+        "qty": 8,
+        "plies": 1,
+        "total_layers": 8,
+        "span_mm": 8400,
+        "height_mm": 2100,
+        "pitch_deg": 25.0,
+        "press_points": 240,
+        "press_points_per_unit": 30,
+        "timber_vol_m3": 0.8420,
+        "plates_m2": 3.250
+      }
+    ],
+    "cutting_plan": { ... },
+    "plates_summary": [
+      {
+        "size_str": "100x150",
+        "gauge": "T150",
+        "total_qty": 64,
+        "unit_area_m2": 0.015,
+        "total_area_m2": 0.96
+      }
+    ]
+  }
 }
 ```
 
