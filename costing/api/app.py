@@ -5,7 +5,7 @@ FastAPI Application Setup & Startup for MiTek Costing & Production Suite.
 import os
 from pathlib import Path
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import uvicorn
 
@@ -40,12 +40,9 @@ def create_app() -> FastAPI:
             return FileResponse(str(template_path))
         return HTMLResponse("<h1>MiTek Costing Service</h1><p>Frontend template not found.</p>")
 
-    @application.get("/admin", response_class=HTMLResponse)
+    @application.get("/admin")
     def admin():
-        template_path = BASE_DIR / "web" / "templates" / "admin.html"
-        if template_path.exists():
-            return FileResponse(str(template_path))
-        return HTMLResponse("<h1>Admin template not found.</h1>", status_code=404)
+        return RedirectResponse(url="/?tab=tab-admin", status_code=307)
 
     return application
 

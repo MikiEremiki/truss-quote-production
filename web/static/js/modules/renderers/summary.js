@@ -6,7 +6,12 @@ let typeAliases = null;
 let trussCatalog = null;
 let aliasesLoading = false;
 
-function loadTypeAliases() {
+export function updateAliasesCache(aliases, catalog) {
+  typeAliases = aliases || {};
+  if (catalog) trussCatalog = catalog;
+}
+
+export function loadTypeAliases() {
   if (aliasesLoading) return;
   aliasesLoading = true;
   fetch('/api/admin/type-aliases')

@@ -9,6 +9,7 @@ import { renderPlates, renderTimber } from './specs.js';
 import { renderFinancials } from './financials.js';
 import { renderClientKP, renderInternalEstimate } from './quotes.js';
 import { renderWorkorders } from './workorders.js';
+import { renderAdmin, handleSaveAdminAliases } from './admin.js';
 
 export function renderAll() {
   if (!appState.data || !appState.cost) return;
@@ -23,6 +24,7 @@ export function renderAll() {
   renderClientKP();
   renderInternalEstimate();
   renderWorkorders();
+  renderAdmin();
 }
 
 export {
@@ -35,5 +37,7 @@ export {
   renderFinancials,
   renderClientKP,
   renderInternalEstimate,
-  renderWorkorders
+  renderWorkorders,
+  renderAdmin,
+  handleSaveAdminAliases
 };

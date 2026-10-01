@@ -92,3 +92,19 @@ export async function apiGenerateWorkorders(payload = {}) {
   if (!res.ok) throw new Error(`HTTP error ${res.status}`);
   return await res.json();
 }
+
+export async function fetchAdminTypeAliases() {
+  const res = await fetch('/api/admin/type-aliases');
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return await res.json();
+}
+
+export async function saveAdminTypeAliases(aliases) {
+  const res = await fetch('/api/admin/type-aliases', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ aliases })
+  });
+  if (!res.ok) throw new Error(`HTTP error ${res.status}`);
+  return await res.json();
+}

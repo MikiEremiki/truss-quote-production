@@ -14,7 +14,9 @@ from costing.api.routes import (
     calculate_financials_endpoint,
     create_quote_endpoint,
     get_workorders_endpoint,
-    get_app_info
+    get_app_info,
+    get_admin_type_aliases,
+    put_admin_type_aliases
 )
 from costing.api.schemas import CalculateRequest, QuoteRequest, WorkorderRequest
 
@@ -83,6 +85,20 @@ class TestAPIEndpoints(unittest.TestCase):
         res = get_workorders_endpoint(req)
         self.assertEqual(res["status"], "success")
         self.assertIn("workorders", res)
+
+    def test_admin_type_aliases_endpoint(self):
+        res = get_admin_type_aliases()
+        self.assertEqual(res["status"], "success")
+        self.assertIn("types", res)
+        self.assertIn("all_options", res)
+        self.assertIn("aliases", res)
+
+        save_res = put_admin_type_aliases({"aliases": {"duopitch": "scissor"}})
+        self.assertEqual(save_res["status"], "success")
+        self.assertEqual(save_res["aliases"].get("duopitch"), "scissor")
+
+        # Cleanup
+        put_admin_type_aliases({"aliases": {"duopitch": ""}})
 
     def test_download_endpoints_via_testclient(self):
         """

@@ -129,10 +129,10 @@
           <span>Настройки</span>
         </div>
         <div class="space-y-0.5">
-          <a href="/admin" class="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
+          <button onclick="switchTab('tab-admin')" id="btn-tab-admin" class="tab-btn w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition text-left">
             <i class="fa-solid fa-gear w-4 text-center text-slate-400"></i>
             <span>Админка настроек</span>
-          </a>
+          </button>
         </div>
       </div>
 
@@ -1005,6 +1005,60 @@
 
         <div id="ifc-viewer-wrap" class="w-full">
           <div id="ifc-canvas-container" class="w-full rounded-xl border border-slate-200 overflow-hidden bg-slate-900 shadow-inner" style="height: 650px;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 12: Настройки и Администрирование -->
+    <div id="tab-admin" class="tab-content hidden space-y-6">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-blue-600"></i> Панель администрирования и настройки
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Управление системными параметрами, сопоставлением типов конструкций и алиасами</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <button onclick="saveAdminAliases()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-xs font-semibold transition shadow-sm flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Сохранить настройки</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Section: Сопоставление типов конструкций -->
+        <div class="space-y-3">
+          <div>
+            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-tags text-indigo-600"></i> Сопоставление типов конструкций (Алиасы)
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">
+              Выберите подтип конструкции из производственного справочника («Позиции & Сложность работ»), который будет отображаться в столбце «Тип конструкции» на вкладке «Обзор» для каждого типа из файла проекта.
+            </p>
+          </div>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-slate-600 font-semibold text-xs uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-3 px-4">Исходный тип из файла</th>
+                  <th class="py-3 px-4">Отображать во вкладке «Обзор» как</th>
+                </tr>
+              </thead>
+              <tbody id="admin-alias-body" class="divide-y divide-slate-100 font-medium">
+                <!-- Rendered via JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <div class="mt-4 flex items-center gap-3">
+            <button onclick="saveAdminAliases()" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-sm transition flex items-center gap-2">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span>Сохранить настройки</span>
+            </button>
+            <span id="admin-status" class="text-xs font-medium"></span>
+          </div>
         </div>
       </div>
     </div>
