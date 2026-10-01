@@ -9,7 +9,7 @@
   <!-- FontAwesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Custom Styles -->
-  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/styles.css?v=2.0.1">
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex font-sans antialiased">
 
@@ -816,10 +816,11 @@
           <table class="w-full text-left text-xs border border-slate-200">
             <thead class="bg-slate-100 font-bold uppercase text-slate-700">
               <tr>
-                <th class="py-2.5 px-3 border-b">№</th>
-                <th class="py-2.5 px-3 border-b">Наименование позиции / услуги</th>
-                <th class="py-2.5 px-3 border-b text-center">Кол-во</th>
-                <th class="py-2.5 px-3 border-b text-right">Сумма (₽)</th>
+                <th class="py-2.5 px-3 border-b text-center w-10">№</th>
+                <th class="py-2.5 px-3 border-b">Наименование продукции и услуг</th>
+                <th class="py-2.5 px-3 border-b text-center w-24">Кол-во</th>
+                <th class="py-2.5 px-3 border-b text-right w-28">Цена, руб.</th>
+                <th class="py-2.5 px-3 border-b text-right w-32">Сумма, руб.</th>
               </tr>
             </thead>
             <tbody id="kp-table-body" class="divide-y divide-slate-200">
@@ -827,7 +828,7 @@
             </tbody>
             <tfoot class="bg-slate-50 font-bold text-sm">
               <tr>
-                <td colspan="3" class="py-3 px-3 text-right">ИТОГО К ОПЛАТЕ:</td>
+                <td colspan="4" class="py-3 px-3 text-right">ИТОГО К ОПЛАТЕ:</td>
                 <td class="py-3 px-3 text-right text-blue-700 font-mono" id="kp-total-sum">0 ₽</td>
               </tr>
             </tfoot>
@@ -1076,6 +1077,6 @@
   </div>
 
   <!-- Main JavaScript App Logic (Modular ES6) -->
-  <script type="module" src="/static/js/app.js"></script>
+  <script type="module" src="/static/js/app.js?v=2.0.1"></script>
 </body>
 </html>
